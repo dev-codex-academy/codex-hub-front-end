@@ -2,11 +2,13 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Briefcase, Calendar,
   Star, ClipboardList, UserSearch, FileText, Video, LogOut,
+  Zap, GraduationCap, Bell, CircleUser,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import Swal from 'sweetalert2'
 
-const NAV = [
+// Nav shown to HR staff (has groups or is_staff)
+const HR_NAV = [
   {
     title: null,
     items: [{ label: 'Dashboard', to: '/dashboard', Icon: LayoutDashboard }],
@@ -29,11 +31,35 @@ const NAV = [
       { label: 'Interviews',       to: '/interviews',       Icon: Video },
     ],
   },
+  {
+    title: 'Applicant Data',
+    items: [
+      { label: 'Skills Catalog', to: '/skills',        Icon: Zap },
+      { label: 'Education',      to: '/education',     Icon: GraduationCap },
+      { label: 'Notifications',  to: '/notifications', Icon: Bell },
+    ],
+  },
+]
+
+// Nav shown to applicants (no groups, not staff)
+const APPLICANT_NAV = [
+  {
+    title: null,
+    items: [
+      { label: 'My Profile',    to: '/profile',          Icon: CircleUser },
+      { label: 'Jobs',          to: '/jobs',              Icon: ClipboardList },
+      { label: 'My Applications', to: '/job-applications', Icon: FileText },
+      { label: 'Notifications', to: '/notifications',    Icon: Bell },
+    ],
+  },
 ]
 
 export default function Sidebar({ onClose }) {
   const { logout, user } = useAuth()
   const navigate = useNavigate()
+
+  const isApplicant = user && !user.is_staff && (!user.groups || user.groups.length === 0)
+  const NAV = isApplicant ? APPLICANT_NAV : HR_NAV
 
   const handleLogout = async () => {
     const r = await Swal.fire({

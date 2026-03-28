@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Users, Briefcase, FileText, Video,
-  Clock, TrendingUp, ArrowRight,
+  Clock, TrendingUp, ArrowRight, CircleUser,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import employeeService       from '@/services/employeeService'
@@ -86,6 +86,14 @@ function ModuleRow({ label, Icon, iconBg }) {
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+
+  // Redirect applicants (no group, not staff) straight to their profile
+  useEffect(() => {
+    if (user && !user.is_staff && (!user.groups || user.groups.length === 0)) {
+      navigate('/profile', { replace: true })
+    }
+  }, [user, navigate])
 
   const [stats, setStats] = useState({
     employees: 142, openJobs: 8, applications: 34, interviews: 3,

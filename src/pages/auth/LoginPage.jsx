@@ -16,8 +16,10 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(data.username, data.password)
-      navigate('/dashboard')
+      const me = await login(data.username, data.password)
+      // Applicants have no group assignments — send them to their profile
+      const isApplicant = !me.is_staff && (!me.groups || me.groups.length === 0)
+      navigate(isApplicant ? '/profile' : '/dashboard')
     } catch (err) {
       const msg = err.response?.data?.non_field_errors?.[0]
         || err.response?.data?.detail

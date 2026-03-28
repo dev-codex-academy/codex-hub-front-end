@@ -24,7 +24,8 @@ export default function JobsPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm()
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm()
+  const isInternal = watch('is_internal')
 
   const fetchData = async () => {
     setLoading(true)
@@ -49,7 +50,8 @@ export default function JobsPage() {
     setEditing(job)
     reset({
       title: job.title,
-      position_ref: job.position_ref,
+      position: job.position,
+      external_position_title: job.external_position_title,
       company_name: job.company_name,
       is_internal: job.is_internal,
       job_type: job.job_type,
@@ -187,24 +189,44 @@ export default function JobsPage() {
           <Input {...register('title', { required: 'Required' })} placeholder="Senior Developer" />
           {errors.title && <p className="form-error">{errors.title.message}</p>}
         </div>
-        <div className="form-grid-2">
+        <div className="form-check">
+          <input type="checkbox" id="is_internal" {...register('is_internal')} className="h-4 w-4" />
+          <Label htmlFor="is_internal">Internal posting (CodeX Academy)</Label>
+        </div>
+        {isInternal ? (
           <div className="form-group">
-            <Label>Position</Label>
+            <Label>Position *</Label>
             <select
-              {...register('position_ref')}
+              {...register('position', { required: isInternal ? 'Required' : false })}
               className="form-select"
             >
-              <option value="">— None —</option>
-              {positions.map(p => (
+              <option value="">— Select Position —</option>
+              {positions.filter(p => p.is_internal).map(p => (
                 <option key={p.id} value={p.id}>{p.title}</option>
               ))}
             </select>
+            {errors.position && <p className="form-error">{errors.position.message}</p>}
           </div>
-          <div className="form-group">
-            <Label>Company</Label>
-            <Input {...register('company_name')} placeholder="Acme Corp" />
+        ) : (
+          <div className="form-grid-2">
+            <div className="form-group">
+              <Label>Position Title *</Label>
+              <Input
+                {...register('external_position_title', { required: !isInternal ? 'Required' : false })}
+                placeholder="Senior React Developer"
+              />
+              {errors.external_position_title && <p className="form-error">{errors.external_position_title.message}</p>}
+            </div>
+            <div className="form-group">
+              <Label>Company Name *</Label>
+              <Input
+                {...register('company_name', { required: !isInternal ? 'Required' : false })}
+                placeholder="Acme Corp"
+              />
+              {errors.company_name && <p className="form-error">{errors.company_name.message}</p>}
+            </div>
           </div>
-        </div>
+        )}
         <div className="form-grid-2">
           <div className="form-group">
             <Label>Job Type</Label>
@@ -228,10 +250,6 @@ export default function JobsPage() {
               ))}
             </select>
           </div>
-        </div>
-        <div className="form-check">
-          <input type="checkbox" id="is_internal" {...register('is_internal')} className="h-4 w-4" />
-          <Label htmlFor="is_internal">Internal posting only</Label>
         </div>
         <div className="form-group">
           <Label>Description</Label>

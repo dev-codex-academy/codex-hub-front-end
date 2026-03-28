@@ -14,7 +14,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SpinnerOverlay } from '@/components/ui/spinner'
 import FormModal from '@/components/common/FormModal'
 
-const INTERVIEW_TYPES = ['phone', 'video', 'in_person', 'technical', 'panel']
+const INTERVIEW_TYPES = ['phone_screen', 'video', 'technical', 'panel', 'on_site', 'final']
 const OUTCOMES = ['pending', 'passed', 'failed', 'no_show', 'rescheduled']
 
 const OUTCOME_COLORS = {
@@ -65,13 +65,13 @@ export default function InterviewsPage() {
   const openEdit = (item) => {
     setEditing(item)
     reset({
-      job_application: item.job_application,
+      application: item.application,
       interview_type: item.interview_type,
       scheduled_at: item.scheduled_at ? item.scheduled_at.slice(0, 16) : '',
       interviewer: item.interviewer,
       outcome: item.outcome,
-      notes: item.notes,
-      location: item.location,
+      comments: item.comments,
+      results: item.results,
     })
     setModalOpen(true)
   }
@@ -207,18 +207,19 @@ export default function InterviewsPage() {
         loading={saving}
       >
         <div className="form-group">
-          <Label>Job Application</Label>
+          <Label>Job Application *</Label>
           <select
-            {...register('job_application')}
+            {...register('application', { required: 'Required' })}
             className="form-select"
           >
-            <option value="">— None —</option>
+            <option value="">— Select Application —</option>
             {applications.map(a => (
               <option key={a.id} value={a.id}>
                 {a.applicant_name} — {a.job_title}
               </option>
             ))}
           </select>
+          {errors.application && <p className="form-error">{errors.application.message}</p>}
         </div>
         <div className="form-grid-2">
           <div className="form-group">
@@ -270,15 +271,20 @@ export default function InterviewsPage() {
           </div>
         </div>
         <div className="form-group">
-          <Label>Location / Link</Label>
-          <Input {...register('location')} placeholder="Conference room A / Zoom link" />
+          <Label>Comments</Label>
+          <textarea
+            {...register('comments')}
+            rows={3}
+            placeholder="Interview notes, prep questions..."
+            className="form-textarea"
+          />
         </div>
         <div className="form-group">
-          <Label>Notes</Label>
+          <Label>Results</Label>
           <textarea
-            {...register('notes')}
+            {...register('results')}
             rows={3}
-            placeholder="Interview notes..."
+            placeholder="Outcome summary, feedback..."
             className="form-textarea"
           />
         </div>

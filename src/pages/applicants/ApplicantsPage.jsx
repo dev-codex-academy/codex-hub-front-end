@@ -1,25 +1,17 @@
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Plus, Pencil, Trash2, Check, X, UserSearch } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Trash2, Check, X, UserSearch, ExternalLink } from 'lucide-react'
 import Swal from 'sweetalert2'
 import applicantService from '@/services/applicantService'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { Card, CardContent } from '@/components/ui/card'
 import { SpinnerOverlay } from '@/components/ui/spinner'
-import FormModal from '@/components/common/FormModal'
 
 export default function ApplicantsPage() {
+  const navigate = useNavigate()
   const [applicants, setApplicants] = useState([])
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState(null)
-
-  const { register, handleSubmit, reset, formState: { errors } } = useForm()
 
   const fetchData = async () => {
     setLoading(true)
@@ -34,40 +26,6 @@ export default function ApplicantsPage() {
   }
 
   useEffect(() => { fetchData() }, [])
-
-  const openNew = () => { setEditing(null); reset({}); setModalOpen(true) }
-  const openEdit = (app) => {
-    setEditing(app)
-    reset({
-      first_name: app.first_name,
-      last_name: app.last_name,
-      email: app.email,
-      phone: app.phone,
-      headline: app.headline,
-      linkedin_url: app.linkedin_url,
-    })
-    setModalOpen(true)
-  }
-
-  const onSubmit = async (data) => {
-    setSaving(true)
-    try {
-      if (editing) {
-        await applicantService.update(editing.id, data)
-      } else {
-        await applicantService.create(data)
-      }
-      setModalOpen(false)
-      fetchData()
-    } catch (err) {
-      const msg = err.response?.data
-        ? Object.values(err.response.data).flat().join(' ')
-        : 'Failed to save applicant.'
-      Swal.fire({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#4E89BD' })
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const handleDelete = async (app) => {
     const result = await Swal.fire({
@@ -106,9 +64,6 @@ export default function ApplicantsPage() {
             <p className="page-subtitle">{applicants.length} record{applicants.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
-        <Button onClick={openNew} size="sm">
-          <Plus className="h-4 w-4 mr-1" /> New Applicant
-        </Button>
       </div>
 
       <Card>
@@ -119,12 +74,12 @@ export default function ApplicantsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Full Name</TableHead>
+                  <TableHead>Applicant</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Headline</TableHead>
-                  <TableHead>Has CV</TableHead>
-                  <TableHead>Has Photo</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>CV</TableHead>
+                  <TableHead>Photo</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -135,23 +90,46 @@ export default function ApplicantsPage() {
                       <div className="empty-state">
                         <UserSearch strokeWidth={1.5} />
                         <p className="empty-state-title">No applicants yet</p>
-                        <p className="empty-state-desc">Add applicants to build your talent pool</p>
+                        <p className="empty-state-desc">Applicants register through the portal and appear here</p>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   applicants.map((app) => (
-                    <TableRow key={app.id}>
-                      <TableCell>{app.full_name || `${app.first_name} ${app.last_name}`}</TableCell>
+                    <TableRow
+                      key={app.id}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => navigate(`/applicants/${app.id}`)}
+                    >
+                      <TableCell>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          {app.photo_url ? (
+                            <img src={app.photo_url} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                          ) : (
+                            <div style={{
+                              width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                              background: 'linear-gradient(135deg, #4E89BD, #61AFEE)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '11px', fontWeight: 700, color: 'white',
+                            }}>
+                              {`${app.first_name?.[0] ?? ''}${app.last_name?.[0] ?? ''}`.toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p style={{ fontWeight: 600, fontSize: '13.5px' }}>{app.full_name || `${app.first_name} ${app.last_name}`}</p>
+                            {app.headline && <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '1px' }}>{app.headline}</p>}
+                          </div>
+                        </div>
+                      </TableCell>
                       <TableCell>{app.email}</TableCell>
                       <TableCell>{app.phone || '—'}</TableCell>
-                      <TableCell>{app.headline || '—'}</TableCell>
+                      <TableCell>{[app.city, app.country].filter(Boolean).join(', ') || '—'}</TableCell>
                       <TableCell><BoolIcon value={app.has_cv} /></TableCell>
                       <TableCell><BoolIcon value={app.has_photo} /></TableCell>
-                      <TableCell>
+                      <TableCell onClick={e => e.stopPropagation()}>
                         <div className="row-actions">
-                          <Button variant="ghost" size="icon" onClick={() => openEdit(app)}>
-                            <Pencil className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" title="View profile" onClick={() => navigate(`/applicants/${app.id}`)}>
+                            <ExternalLink className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => handleDelete(app)}>
                             <Trash2 className="h-4 w-4 text-red-500" />
@@ -167,45 +145,6 @@ export default function ApplicantsPage() {
         </CardContent>
       </Card>
 
-      <FormModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        title={editing ? 'Edit Applicant' : 'New Applicant'}
-        onSubmit={handleSubmit(onSubmit)}
-        loading={saving}
-      >
-        <div className="form-grid-2">
-          <div className="form-group">
-            <Label>First Name *</Label>
-            <Input {...register('first_name', { required: 'Required' })} placeholder="Jane" />
-            {errors.first_name && <p className="form-error">{errors.first_name.message}</p>}
-          </div>
-          <div className="form-group">
-            <Label>Last Name *</Label>
-            <Input {...register('last_name', { required: 'Required' })} placeholder="Doe" />
-            {errors.last_name && <p className="form-error">{errors.last_name.message}</p>}
-          </div>
-        </div>
-        <div className="form-group">
-          <Label>Email *</Label>
-          <Input type="email" {...register('email', { required: 'Required' })} placeholder="jane.doe@example.com" />
-          {errors.email && <p className="form-error">{errors.email.message}</p>}
-        </div>
-        <div className="form-grid-2">
-          <div className="form-group">
-            <Label>Phone</Label>
-            <Input {...register('phone')} placeholder="+1 555 000 0000" />
-          </div>
-          <div className="form-group">
-            <Label>LinkedIn URL</Label>
-            <Input {...register('linkedin_url')} placeholder="https://linkedin.com/in/..." />
-          </div>
-        </div>
-        <div className="form-group">
-          <Label>Headline</Label>
-          <Input {...register('headline')} placeholder="Software Engineer with 5 years experience" />
-        </div>
-      </FormModal>
     </div>
   )
 }

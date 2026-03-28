@@ -12,10 +12,15 @@ import EmployeesPage from '@/pages/employees/EmployeesPage'
 import PositionsPage from '@/pages/positions/PositionsPage'
 import JobsPage from '@/pages/jobs/JobsPage'
 import ApplicantsPage from '@/pages/applicants/ApplicantsPage'
+import ApplicantProfilePage from '@/pages/applicants/ApplicantProfilePage'
 import JobApplicationsPage from '@/pages/job-applications/JobApplicationsPage'
 import InterviewsPage from '@/pages/interviews/InterviewsPage'
 import TimeOffPage from '@/pages/time-off/TimeOffPage'
 import PerformancePage from '@/pages/performance/PerformancePage'
+import SkillsPage from '@/pages/skills/SkillsPage'
+import EducationPage from '@/pages/education/EducationPage'
+import NotificationsPage from '@/pages/notifications/NotificationsPage'
+import ProfilePage from '@/pages/profile/ProfilePage'
 
 export default function AppRouter() {
   return (
@@ -39,10 +44,15 @@ export default function AppRouter() {
         <Route path="/positions" element={<PositionsPage />} />
         <Route path="/jobs" element={<JobsPage />} />
         <Route path="/applicants" element={<ApplicantsPage />} />
+        <Route path="/applicants/:id" element={<ApplicantProfilePage />} />
         <Route path="/job-applications" element={<JobApplicationsPage />} />
         <Route path="/interviews" element={<InterviewsPage />} />
         <Route path="/time-off" element={<TimeOffPage />} />
         <Route path="/performance" element={<PerformancePage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/skills" element={<SkillsPage />} />
+        <Route path="/education" element={<EducationPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Route>
 
       {/* Redirects */}

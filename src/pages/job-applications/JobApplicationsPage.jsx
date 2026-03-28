@@ -14,13 +14,23 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SpinnerOverlay } from '@/components/ui/spinner'
 import FormModal from '@/components/common/FormModal'
 
+const STAGES = [
+  'applied', 'screening', 'phone_interview', 'interview',
+  'technical_test', 'background_check', 'offer_sent',
+  'hired', 'rejected', 'withdrawn',
+]
+
 const STAGE_COLORS = {
   applied: 'default',
   screening: 'pending',
+  phone_interview: 'pending',
   interview: 'warning',
-  offer: 'approved',
+  technical_test: 'warning',
+  background_check: 'warning',
+  offer_sent: 'approved',
   hired: 'hired',
   rejected: 'rejected',
+  withdrawn: 'default',
 }
 
 const formatDate = (dt) => {
@@ -112,23 +122,30 @@ export default function JobApplicationsPage() {
   }
 
   const handleAdvanceStage = async (app) => {
-    const result = await Swal.fire({
-      title: 'Advance stage?',
-      text: `Move "${app.applicant_name || 'this applicant'}" to the next stage?`,
-      icon: 'question',
+    const { value: newStage, isConfirmed } = await Swal.fire({
+      title: 'Move to stage',
+      html: `<p style="margin-bottom:8px">Applicant: <strong>${app.applicant_name || '—'}</strong></p>`,
+      input: 'select',
+      inputOptions: Object.fromEntries(
+        STAGES.filter(s => s !== app.stage).map(s => [
+          s,
+          s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        ])
+      ),
+      inputPlaceholder: 'Select new stage',
       showCancelButton: true,
       confirmButtonColor: '#4E89BD',
-      confirmButtonText: 'Advance',
+      confirmButtonText: 'Move',
+      inputValidator: (v) => !v && 'Please select a stage',
     })
-    if (result.isConfirmed) {
-      try {
-        await jobApplicationService.advanceStage(app.id)
-        fetchData()
-        Swal.fire({ icon: 'success', title: 'Stage advanced!', timer: 1500, showConfirmButton: false })
-      } catch (err) {
-        const msg = err.response?.data?.detail || 'Could not advance stage.'
-        Swal.fire({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#4E89BD' })
-      }
+    if (!isConfirmed || !newStage) return
+    try {
+      await jobApplicationService.advanceStage(app.id, { stage: newStage })
+      fetchData()
+      Swal.fire({ icon: 'success', title: 'Stage updated!', timer: 1500, showConfirmButton: false })
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Could not update stage.'
+      Swal.fire({ icon: 'error', title: 'Error', text: msg, confirmButtonColor: '#4E89BD' })
     }
   }
 
@@ -254,8 +271,10 @@ export default function JobApplicationsPage() {
             {...register('stage')}
             className="form-select"
           >
-            {Object.keys(STAGE_COLORS).map(s => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            {STAGES.map(s => (
+              <option key={s} value={s}>
+                {s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              </option>
             ))}
           </select>
         </div>
