@@ -88,7 +88,7 @@ export default function Sidebar({ onClose }) {
       <div className="sidebar-logo">
         <div className="sidebar-logo-badge">HR</div>
         <span className="sidebar-logo-name">
-          HR Portal
+          CodeX Hub
           <span className="sidebar-logo-dot" />
         </span>
       </div>

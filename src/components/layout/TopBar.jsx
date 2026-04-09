@@ -15,7 +15,7 @@ const TITLES = {
 
 export default function TopBar({ onMenuToggle }) {
   const { pathname } = useLocation()
-  const title = TITLES[pathname] ?? 'HR Portal'
+  const title = TITLES[pathname] ?? 'CodeX Hub'
 
   return (
     <header className="topbar">
