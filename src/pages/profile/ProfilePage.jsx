@@ -103,6 +103,7 @@ export default function ProfilePage() {
   const [workModal, setWorkModal] = useState({ open: false, item: null })
   const [eduModal, setEduModal] = useState({ open: false, item: null })
   const [skillModal, setSkillModal] = useState(false)
+  const [cvViewUrl, setCvViewUrl] = useState(null)
 
   const cvInputRef = useRef(null)
 
@@ -327,7 +328,7 @@ export default function ProfilePage() {
   const unread = notifications.length
 
   return (
-    <div className="page" style={{ maxWidth: '820px' }}>
+    <div className="page" style={{ maxWidth: '820px', margin: '0 auto' }}>
 
       {/* ── Unread notifications banner ── */}
       {unread > 0 && (
@@ -424,6 +425,14 @@ export default function ProfilePage() {
               <FileText className="h-4 w-4 mr-1" /> {profile.has_cv ? 'Replace CV' : 'Upload CV'}
             </Button>
             <input ref={cvInputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={handleCVUpload} />
+            {profile.has_cv && (
+              <Button size="sm" variant="outline" onClick={async () => {
+                const r = await applicantService.downloadCV(profile.id)
+                setCvViewUrl(r.data.download_url)
+              }}>
+                <FileText className="h-4 w-4 mr-1" /> View CV
+              </Button>
+            )}
             {profile.has_cv && (
               <Button size="sm" variant="outline" onClick={() => applicantService.downloadCV(profile.id).then(r => window.open(r.data.download_url))}>
                 Download CV
@@ -699,6 +708,38 @@ export default function ProfilePage() {
           <textarea {...eduForm.register('description')} rows={2} className="form-textarea" placeholder="Honors, thesis, relevant coursework..." />
         </div>
       </FormModal>
+
+      {/* CV Viewer modal */}
+      {cvViewUrl && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          background: 'rgba(0,0,0,0.7)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '24px',
+        }} onClick={() => setCvViewUrl(null)}>
+          <div style={{
+            background: 'white', borderRadius: '12px', overflow: 'hidden',
+            width: '100%', maxWidth: '900px', height: '90vh',
+            display: 'flex', flexDirection: 'column',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 16px', borderBottom: '1px solid var(--border)',
+            }}>
+              <span style={{ fontSize: '14px', fontWeight: 600 }}>CV Preview</span>
+              <button
+                onClick={() => setCvViewUrl(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--text-muted)', lineHeight: 1 }}
+              >×</button>
+            </div>
+            <iframe
+              src={`https://docs.google.com/viewer?url=${encodeURIComponent(cvViewUrl)}&embedded=true`}
+              style={{ flex: 1, border: 'none', width: '100%' }}
+              title="CV Preview"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Add Skill modal */}
       <FormModal

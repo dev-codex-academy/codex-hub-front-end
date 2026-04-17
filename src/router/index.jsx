@@ -24,6 +24,10 @@ import ProfileGate from '@/pages/profile/ProfileGate'
 import StudentsPage from '@/pages/codexhub/StudentsPage'
 import CodexHubProfilePage from '@/pages/codexhub/CodexHubProfilePage'
 import StudentJobsPage from '@/pages/codexhub/StudentJobsPage'
+import ApplyPage from '@/pages/codexhub/ApplyPage'
+import StudentSpotlightPage from '@/pages/community/StudentSpotlightPage'
+import InstructorsPage from '@/pages/codexhub/InstructorsPage'
+import TALogsPage from '@/pages/ta/TALogsPage'
 
 export default function AppRouter() {
   return (
@@ -33,6 +37,7 @@ export default function AppRouter() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/password-reset" element={<PasswordResetPage />} />
       <Route path="/password-reset/confirm" element={<PasswordResetConfirmPage />} />
+      <Route path="/apply/:jobId" element={<ApplyPage />} />
 
       {/* Protected routes */}
       <Route
@@ -59,6 +64,9 @@ export default function AppRouter() {
         <Route path="/skills" element={<SkillsPage />} />
         <Route path="/education" element={<EducationPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/community/spotlights" element={<StudentSpotlightPage />} />
+        <Route path="/codexhub/instructors" element={<InstructorsPage />} />
+        <Route path="/ta/logs" element={<TALogsPage />} />
       </Route>
 
       {/* Redirects */}

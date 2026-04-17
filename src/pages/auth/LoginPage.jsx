@@ -17,6 +17,12 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const me = await login(data.username, data.password)
+      const pendingJob = localStorage.getItem('pending_apply_job')
+      if (pendingJob) {
+        localStorage.removeItem('pending_apply_job')
+        navigate(`/apply/${pendingJob}`, { replace: true })
+        return
+      }
       // Applicants have no group assignments — send them to CodeX Hub
       const isApplicant = !me.is_staff && (!me.groups || me.groups.length === 0)
       navigate(isApplicant ? '/codexhub/students' : '/dashboard')

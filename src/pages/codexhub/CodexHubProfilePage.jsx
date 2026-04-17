@@ -505,7 +505,7 @@ export default function CodexHubProfilePage() {
         <SectionHeading label="Profile" />
         <p className="text-slate-600">
           We couldn&apos;t load your student profile yet. This usually means your
-          account isn&apos;t linked to an applicant profile.
+          account isn&apos;t linked to a student profile.
         </p>
         {profileNotice && (
           <p className="mt-3 text-sm text-rose-500">{profileNotice}</p>
@@ -514,7 +514,7 @@ export default function CodexHubProfilePage() {
           to="/register"
           className="mt-6 inline-flex items-center rounded-lg bg-brand-blue px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red"
         >
-          Create applicant profile
+          Create student profile
         </Link>
       </div>
     )

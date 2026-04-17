@@ -46,7 +46,6 @@ export default function JobApplicationsPage() {
   const [saving, setSaving] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
-
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
 
   const fetchData = async () => {

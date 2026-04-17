@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   Users, Briefcase, FileText, Video,
-  Clock, TrendingUp, ArrowRight, CircleUser, Calendar, CheckCircle2, Bell, GraduationCap,
+  Clock, TrendingUp, ArrowRight, GraduationCap,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import employeeService       from '@/services/employeeService'
 import jobService            from '@/services/jobService'
 import jobApplicationService from '@/services/jobApplicationService'
 import interviewService      from '@/services/interviewService'
+import StudentsPage          from '@/pages/codexhub/StudentsPage'
+import TeacherPage           from '@/pages/codexhub/TeacherPage'
+import TAPage                from '@/pages/codexhub/TAPage'
 
 const STAT_CARDS = [
   { key: 'employees',    label: 'Total Employees',     Icon: Users,     iconBg: '#4E89BD', bar: '#61AFEE', to: '/employees' },
@@ -108,14 +111,12 @@ function ModuleRow({ label, Icon, iconBg }) {
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const navigate = useNavigate()
 
-  // Redirect applicants (no group, not staff) straight to their profile
-  useEffect(() => {
-    if (user && !user.is_staff && (!user.groups || user.groups.length === 0)) {
-      navigate('/codexhub/students', { replace: true })
-    }
-  }, [user, navigate])
+  const perms        = new Set(user?.permissions ?? [])
+  const isStaff      = user?.is_staff || perms.has('app.change_jobapplication')
+  const isTA         = !isStaff && perms.has('app.add_tahourslog')
+  const isInstructor = !isStaff && !isTA && perms.has('app.add_studentspotlight')
+  const isStudent    = !isStaff && !isTA && !isInstructor
 
   const [stats, setStats] = useState({
     employees: 142, openJobs: 8, applications: 34, interviews: 3,
@@ -143,6 +144,10 @@ export default function DashboardPage() {
       setLoading(false)
     })
   }, [])
+
+  if (isStudent)    return <StudentsPage />
+  if (isTA)         return <TAPage />
+  if (isInstructor) return <TeacherPage />
 
   const name = user?.first_name
     ? `${user.first_name} ${user.last_name || ''}`.trim()

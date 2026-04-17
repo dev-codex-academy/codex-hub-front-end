@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ExternalLinkIcon, MapPinIcon } from 'lucide-react'
+import { ExternalLinkIcon, MapPinIcon, SendIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import publicJobService from '@/services/publicJobService'
 
@@ -30,9 +30,7 @@ export default function StudentJobsPage() {
           <div>
             <p className="codexhub-section-label">Jobs</p>
             <h1 className="codexhub-title codexhub-title--sm">Open Opportunities</h1>
-            <p className="codexhub-subtitle">
-              Browse open roles curated by CodeX Academy.
-            </p>
+            <p className="codexhub-subtitle">Browse open roles curated by CodeX Academy.</p>
           </div>
           <Link to="/codexhub/students" className="codexhub-btn codexhub-btn--ghost">
             Back to Dashboard
@@ -40,13 +38,9 @@ export default function StudentJobsPage() {
         </div>
 
         {loading ? (
-          <div className="codexhub-card codexhub-empty">
-            Loading jobs...
-          </div>
+          <div className="codexhub-card codexhub-empty">Loading jobs...</div>
         ) : jobs.length === 0 ? (
-          <div className="codexhub-card codexhub-empty">
-            No open jobs right now. Check back soon.
-          </div>
+          <div className="codexhub-card codexhub-empty">No open jobs right now. Check back soon.</div>
         ) : (
           <div className="codexhub-jobs-grid">
             {jobs.map((job) => (
@@ -67,14 +61,16 @@ export default function StudentJobsPage() {
                 <p className="codexhub-job-desc">
                   {job.description || 'View details to learn more about this opportunity.'}
                 </p>
-                <a
-                  href={job.external_url || '#'}
-                  className="codexhub-btn codexhub-btn--blue"
-                  target={job.external_url ? '_blank' : undefined}
-                  rel={job.external_url ? 'noreferrer' : undefined}
-                >
-                  View Details <ExternalLinkIcon />
-                </a>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 'auto' }}>
+                  <Link to={`/apply/${job.id}`} className="codexhub-btn codexhub-btn--blue">
+                    Apply <SendIcon />
+                  </Link>
+                  {job.external_url && (
+                    <a href={job.external_url} className="codexhub-btn codexhub-btn--ghost" target="_blank" rel="noreferrer">
+                      Details <ExternalLinkIcon />
+                    </a>
+                  )}
+                </div>
               </div>
             ))}
           </div>
