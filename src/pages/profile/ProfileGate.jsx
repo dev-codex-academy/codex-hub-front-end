@@ -2,21 +2,21 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import ProfilePage from '@/pages/profile/ProfilePage'
 import CodexHubProfilePage from '@/pages/codexhub/CodexHubProfilePage'
+import InstructorProfilePage from '@/pages/profile/InstructorProfilePage'
 
 export default function ProfileGate() {
   const { user, loading } = useAuth()
 
   if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
 
-  const isApplicant = user && !user.is_staff && (!user.groups || user.groups.length === 0)
+  const perms = new Set(user.permissions ?? [])
+  const isStaff      = user.is_staff || perms.has('app.change_jobapplication')
+  const isTA         = !isStaff && perms.has('app.add_tahourslog')
+  const isInstructor = !isStaff && !isTA && perms.has('app.add_studentspotlight')
+  const isStudent    = !isStaff && !isTA && !isInstructor
 
-  if (isApplicant) {
-    return <CodexHubProfilePage />
-  }
-
-  if (user) {
-    return <ProfilePage />
-  }
-
-  return <Navigate to="/login" replace />
+  if (isTA || isInstructor) return <InstructorProfilePage />
+  if (isStudent)            return <CodexHubProfilePage />
+  return <ProfilePage />
 }

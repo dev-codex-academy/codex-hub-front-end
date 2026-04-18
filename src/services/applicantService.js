@@ -27,85 +27,10 @@ const applicantService = {
   downloadCV: (id) =>
     api.get(`/applicants/${id}/cv-download/`),
 
-  // Self-service: logged-in applicant's own profile
-  // Backend does not expose /applicants/my-profile/, so resolve via /me/ + applicants search.
-  getMyProfile: async () => {
-    const cachedProfile = localStorage.getItem('applicantProfile')
-    if (cachedProfile) {
-      try {
-        const parsed = JSON.parse(cachedProfile)
-        if (parsed?.id) {
-          return { data: parsed }
-        }
-      } catch {
-        // ignore invalid cache
-      }
-    }
+  // Self-service: logged-in applicant's own profile via /api/applicants/me/
+  getMyProfile: () => api.get('/applicants/me/'),
 
-    const storedId = localStorage.getItem('applicantId')
-    if (storedId) {
-      try {
-        return await api.get(`/applicants/${storedId}/`)
-      } catch (error) {
-        if (![403, 404].includes(error?.response?.status)) {
-          throw error
-        }
-      }
-    }
-
-    const meRes = await api.get('/me/')
-    const username = meRes.data?.username
-    const email = meRes.data?.email
-    if (!username && !email) {
-      const err = new Error('Unable to resolve current user.')
-      err.response = { status: 404 }
-      throw err
-    }
-
-    const listRes = await api.get('/applicants/', {
-      params: { search: username || email },
-    })
-    let list = listRes.data?.results ?? listRes.data ?? []
-    let match =
-      list.find((item) => item.username === username) ||
-      list.find((item) => item.email === email) ||
-      list[0]
-
-    if (!match && email) {
-      const emailRes = await api.get('/applicants/', { params: { search: email } })
-      list = emailRes.data?.results ?? emailRes.data ?? []
-      match = list.find((item) => item.email === email) || list[0]
-    }
-
-    if (!match?.id) {
-      const err = new Error('Applicant profile not found.')
-      err.response = { status: 404 }
-      throw err
-    }
-
-    localStorage.setItem('applicantId', match.id)
-    localStorage.setItem('applicantProfile', JSON.stringify(match))
-
-    if (match.work_experiences) {
-      return { ...listRes, data: match }
-    }
-
-    return api.get(`/applicants/${match.id}/`)
-  },
-  updateMyProfile: async (data) => {
-    const storedId = localStorage.getItem('applicantId')
-    if (storedId) {
-      return api.patch(`/applicants/${storedId}/`, data)
-    }
-    const profileRes = await applicantService.getMyProfile()
-    const id = profileRes?.data?.id
-    if (!id) {
-      const err = new Error('Applicant profile not found.')
-      err.response = { status: 404 }
-      throw err
-    }
-    return api.patch(`/applicants/${id}/`, data)
-  },
+  updateMyProfile: (data) => api.patch('/applicants/me/', data),
 
   uploadMyPhoto: (id, file) => {
     const formData = new FormData()

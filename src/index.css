@@ -1542,6 +1542,10 @@ textarea {
   color: var(--text-muted);
 }
 
+.codexhub-card.codexhub-action {
+  display: flex;
+  flex-direction: column;
+}
 .codexhub-action h2 {
   margin: 0 0 6px;
   font-size: 18px;
@@ -1552,6 +1556,7 @@ textarea {
   margin: 0 0 18px;
   font-size: 14px;
   color: var(--text-muted);
+  flex: 1;
 }
 
 .codexhub-icon {

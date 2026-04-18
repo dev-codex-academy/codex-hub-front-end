@@ -1,54 +1,34 @@
 import { safeParseJSON } from '../utils/storage'
 
-const STORAGE_KEY = 'savedJobs'
-
-const normalizeJob = (job) => ({
-  id: job.id,
-  title: job.title || job.position_display || job.external_position_title || 'Role',
-  company_name: job.company_name || job.display_company || 'CodeX Academy',
-  location: job.location || (job.is_remote ? 'Remote' : 'Hybrid'),
-  saved_at: new Date().toISOString(),
-})
-
-const notify = () => {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('savedJobsUpdated'))
-  }
-}
+const KEY = 'savedJobs'
 
 const savedJobsService = {
-  getSavedJobsLocal: () => {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    const parsed = safeParseJSON(raw, [])
+  getAll: () => {
+    const parsed = safeParseJSON(localStorage.getItem(KEY), [])
     return Array.isArray(parsed) ? parsed : []
   },
-  saveJobLocal: (job) => {
-    if (!job?.id) return
-    const list = savedJobsService.getSavedJobsLocal()
-    if (list.some((item) => item.id === job.id)) return
-    const updated = [normalizeJob(job), ...list]
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-    notify()
+
+  getSavedJobsLocal: () => savedJobsService.getAll(),
+
+  isSaved: (jobId) => savedJobsService.getAll().some(j => j.id === jobId),
+
+  save: (job) => {
+    const current = savedJobsService.getAll()
+    if (current.some(j => j.id === job.id)) return
+    localStorage.setItem(KEY, JSON.stringify([job, ...current]))
   },
-  removeJobLocal: (jobId) => {
-    if (!jobId) return
-    const list = savedJobsService.getSavedJobsLocal()
-    const updated = list.filter((item) => item.id !== jobId)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-    notify()
+
+  remove: (jobId) => {
+    const updated = savedJobsService.getAll().filter(j => j.id !== jobId)
+    localStorage.setItem(KEY, JSON.stringify(updated))
   },
-  isSavedLocal: (jobId) => {
-    if (!jobId) return false
-    const list = savedJobsService.getSavedJobsLocal()
-    return list.some((item) => item.id === jobId)
-  },
-  toggleJobLocal: (job) => {
-    if (!job?.id) return
-    if (savedJobsService.isSavedLocal(job.id)) {
-      savedJobsService.removeJobLocal(job.id)
+
+  toggle: (job) => {
+    if (savedJobsService.isSaved(job.id)) {
+      savedJobsService.remove(job.id)
       return false
     }
-    savedJobsService.saveJobLocal(job)
+    savedJobsService.save(job)
     return true
   },
 }

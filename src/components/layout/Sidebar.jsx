@@ -1,66 +1,107 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Users, Briefcase, Calendar,
-  Star, ClipboardList, UserSearch, FileText, Video, LogOut,
-  Zap, GraduationCap, Bell, CircleUser,
+  LayoutDashboard, Users, Briefcase, ClipboardList, UserSearch,
+  FileText, Video, LogOut, Zap, GraduationCap, Bell, CircleUser,
+  Newspaper, Star, Clock,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import Swal from 'sweetalert2'
 
-// Nav shown to HR staff (has groups or is_staff)
-const HR_NAV = [
-  {
-    title: null,
-    items: [{ label: 'Dashboard', to: '/dashboard', Icon: LayoutDashboard }],
-  },
-  {
-    title: 'HR Management',
-    items: [
-      { label: 'Employees',           to: '/employees',   Icon: Users },
-      { label: 'Positions',           to: '/positions',   Icon: Briefcase },
-      { label: 'Time Off',            to: '/time-off',    Icon: Calendar },
-      { label: 'Performance Reviews', to: '/performance', Icon: Star },
-    ],
-  },
-  {
-    title: 'Recruitment',
-    items: [
-      { label: 'Jobs',             to: '/jobs',             Icon: ClipboardList },
-      { label: 'Applicants',       to: '/applicants',       Icon: UserSearch },
-      { label: 'Job Applications', to: '/job-applications', Icon: FileText },
-      { label: 'Interviews',       to: '/interviews',       Icon: Video },
-    ],
-  },
-  {
-    title: 'Applicant Data',
-    items: [
-      { label: 'Skills Catalog', to: '/skills',        Icon: Zap },
-      { label: 'Education',      to: '/education',     Icon: GraduationCap },
-      { label: 'Notifications',  to: '/notifications', Icon: Bell },
-    ],
-  },
+/**
+ * Master nav item list.
+ *
+ * audience:
+ *   'all'              → always visible (Dashboard)
+ *   'staff'            → only privileged users (Hub Admin, Operations, Staff)
+ *   'instructor'       → only Teacher
+ *   'ta'               → only TA
+ *   'student'          → only students (Applicant)
+ *   'staff_instructor' → privileged OR instructor
+ *
+ * permission (optional): Django codename in 'app.<codename>' format.
+ *   If the logged-in user lacks this permission the item is hidden,
+ *   regardless of audience.
+ */
+const NAV_ITEMS = [
+  // ── always ───────────────────────────────────────────────────────
+  { label: 'Dashboard',  to: '/dashboard', Icon: LayoutDashboard, section: null, audience: 'all' },
+
+  // ── HR Management ─────────────────────────────────────────────
+  { label: 'Employees',  to: '/employees',  Icon: Users,     section: 'HR Management', permission: 'app.view_employee',  audience: 'staff' },
+  { label: 'Positions',  to: '/positions',  Icon: Briefcase, section: 'HR Management', permission: 'app.view_position',  audience: 'staff' },
+
+  // ── Recruitment ───────────────────────────────────────────────
+  { label: 'Jobs',             to: '/jobs',             Icon: ClipboardList, section: 'Recruitment', permission: 'app.view_job',             audience: 'staff' },
+  { label: 'Students',         to: '/applicants',       Icon: UserSearch,    section: 'Recruitment', permission: 'app.view_applicant',        audience: 'staff' },
+  { label: 'Job Applications', to: '/job-applications', Icon: FileText,      section: 'Recruitment', permission: 'app.change_jobapplication',  audience: 'staff' },
+  { label: 'Interviews',       to: '/interviews',       Icon: Video,         section: 'Recruitment', permission: 'app.view_interview',        audience: 'staff' },
+
+  // ── Data ──────────────────────────────────────────────────────
+  { label: 'Skills Catalog', to: '/skills',        Icon: Zap,           section: 'Data', permission: 'app.view_skill',        audience: 'staff' },
+  { label: 'Education',      to: '/education',     Icon: GraduationCap, section: 'Data', permission: 'app.view_education',    audience: 'staff' },
+  { label: 'Notifications',  to: '/notifications', Icon: Bell,          section: 'Data', permission: 'app.view_notification', audience: 'staff' },
+
+  // ── Community (staff + instructors) ──────────────────────────
+  { label: 'Student Spotlights', to: '/community/spotlights', Icon: Star,      section: 'Community', permission: 'app.view_studentspotlight', audience: 'staff_instructor' },
+
+  // ── Instructor personal ───────────────────────────────────────
+  { label: 'My Profile', to: '/profile', Icon: CircleUser, section: null, audience: 'instructor' },
+
+  // ── TA portal ─────────────────────────────────────────────────
+  { label: 'My Logs',    to: '/ta/logs', Icon: Clock,      section: 'TA Portal', audience: 'ta', permission: 'app.add_tahourslog' },
+  { label: 'My Profile', to: '/profile', Icon: CircleUser, section: null,        audience: 'ta' },
+
+  // ── Student portal ────────────────────────────────────────────
+  { label: 'CodeX Hub',       to: '/codexhub/students',   Icon: GraduationCap, section: null, audience: 'student' },
+  { label: 'My Profile',      to: '/profile',              Icon: CircleUser,    section: null, audience: 'student' },
+  { label: 'Jobs',            to: '/codexhub/jobs',        Icon: ClipboardList, section: null, audience: 'student', permission: 'app.view_job' },
+  { label: 'My Applications', to: '/job-applications',     Icon: FileText,      section: null, audience: 'student', permission: 'app.view_jobapplication' },
+  { label: 'Instructors',     to: '/codexhub/instructors', Icon: Star,          section: null, audience: 'student' },
+  { label: 'Notifications',   to: '/notifications',        Icon: Bell,          section: null, audience: 'student', permission: 'app.view_notification' },
 ]
 
-// Nav shown to applicants (no groups, not staff)
-const APPLICANT_NAV = [
-  {
-    title: null,
-    items: [
-      { label: 'CodeX Hub',    to: '/codexhub/students', Icon: GraduationCap },
-      { label: 'My Profile',    to: '/profile',          Icon: CircleUser },
-      { label: 'Jobs',          to: '/jobs',              Icon: ClipboardList },
-      { label: 'My Applications', to: '/job-applications', Icon: FileText },
-      { label: 'Notifications', to: '/notifications',    Icon: Bell },
-    ],
-  },
-]
+/** Derive role purely from the permission set returned by /api/me/ */
+function deriveRole(user) {
+  if (!user) return 'student'
+  if (user.is_staff) return 'staff'
+  const perms = new Set(user.permissions ?? [])
+  if (perms.has('app.change_jobapplication')) return 'staff'
+  if (perms.has('app.add_tahourslog'))        return 'ta'
+  if (perms.has('app.add_studentspotlight'))  return 'instructor'
+  return 'student'
+}
 
 export default function Sidebar({ onClose }) {
   const { logout, user } = useAuth()
   const navigate = useNavigate()
 
-  const isApplicant = user && !user.is_staff && (!user.groups || user.groups.length === 0)
-  const NAV = isApplicant ? APPLICANT_NAV : HR_NAV
+  const role  = deriveRole(user)
+  const perms = new Set(user?.permissions ?? [])
+
+  // Filter items by audience and permission
+  const visible = NAV_ITEMS.filter(item => {
+    if (item.audience !== 'all') {
+      if (item.audience === 'staff_instructor') {
+        if (role !== 'staff' && role !== 'instructor' && role !== 'ta') return false
+      } else if (item.audience !== role) {
+        return false
+      }
+    }
+    if (item.permission && !perms.has(item.permission)) return false
+    return true
+  })
+
+  // Group by section preserving order
+  const sections = []
+  let lastSection = Symbol() // guaranteed unique sentinel
+  for (const item of visible) {
+    const sKey = item.section ?? null
+    if (sKey !== lastSection) {
+      sections.push({ title: sKey, items: [] })
+      lastSection = sKey
+    }
+    sections[sections.length - 1].items.push(item)
+  }
 
   const handleLogout = async () => {
     const r = await Swal.fire({
@@ -84,22 +125,18 @@ export default function Sidebar({ onClose }) {
 
   return (
     <aside className="sidebar">
-      {/* Logo */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-badge">HR</div>
         <span className="sidebar-logo-name">
-          HR Portal
+          CodeX Hub
           <span className="sidebar-logo-dot" />
         </span>
       </div>
 
-      {/* Nav */}
       <nav className="sidebar-nav">
-        {NAV.map((section, i) => (
+        {sections.map((section, i) => (
           <div key={i}>
-            {section.title && (
-              <p className="sidebar-section-title">{section.title}</p>
-            )}
+            {section.title && <p className="sidebar-section-title">{section.title}</p>}
             <ul>
               {section.items.map(({ label, to, Icon }) => (
                 <li key={to}>
@@ -118,7 +155,6 @@ export default function Sidebar({ onClose }) {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="sidebar-footer">
         {user && (
           <div className="sidebar-user">

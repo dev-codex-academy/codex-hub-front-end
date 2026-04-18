@@ -271,6 +271,19 @@ export default function StudentJobsPage() {
                     Apply Now
                   </button>
                 </div>
+                <p className="codexhub-job-desc">
+                  {job.description || 'View details to learn more about this opportunity.'}
+                </p>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 'auto' }}>
+                  <Link to={`/apply/${job.id}`} className="codexhub-btn codexhub-btn--blue">
+                    Apply <SendIcon />
+                  </Link>
+                  {job.external_url && (
+                    <a href={job.external_url} className="codexhub-btn codexhub-btn--ghost" target="_blank" rel="noreferrer">
+                      Details <ExternalLinkIcon />
+                    </a>
+                  )}
+                </div>
               </div>
             ))}
           </div>
