@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "npm run build && rm -rf ../hr-back-end/frontend_build && cp -r dist ../hr-back-end/frontend_build"
+    "deploy": "npm run build && rm -rf ../codex-hub-back-end/frontend_build && cp -r dist ../codex-hub-back-end/frontend_build"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
